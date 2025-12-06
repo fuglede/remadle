@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/pxiKyp0ihIEF2isfFJU.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
 #game-container {
   position: relative;
 
@@ -40,6 +50,9 @@
 
 #product-image {
   height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 #product-info {
@@ -165,6 +178,8 @@
   justify-content: center;
 
   height: 40px;
+  padding-left: 4px;
+  margin-right: 8px;
 
   border-right: 2px solid black;
   background-color: rgb(173, 173, 173);
@@ -176,7 +191,7 @@
 
   width: 180px;
   height: 40px;
-  padding-left: 6px;
+  padding-left: 16px;
 
   color: gainsboro;
   border: none;

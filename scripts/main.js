@@ -4,6 +4,7 @@
 
 //Product info variables
 let productName;
+let productSubname;
 let productPrice;
 let productImage;
 
@@ -16,8 +17,6 @@ let warningTimeout;
   Global variable constants
 */
 
-//The day Costcodle was launched. Used to find game number each day
-const costcodleStartDate = new Date("09/21/2023");
 const gameNumber = getGameNumber();
 
 //Elements with event listeners to play the game
@@ -67,7 +66,7 @@ function fetchGameData(gameNumber) {
     .then((json) => {
       productName = json[`game-${gameNumber}`].name;
       productPrice = json[`game-${gameNumber}`].price;
-      productPrice = Number(productPrice.slice(1, productPrice.length));
+      productSubname = json[`game-${gameNumber}`].subname.toUpperCase();
       productImage = json[`game-${gameNumber}`].image;
 
       initializeGame();
@@ -109,7 +108,7 @@ function convertToShareButton() {
   const shareButtonElem = document.createElement("button");
   shareButtonElem.setAttribute("id", "share-button");
   containerElem.innerHTML = "";
-  shareButtonElem.innerHTML = `Share
+  shareButtonElem.innerHTML = `Del
   <img src="./assets/share-icon.svg" class="share-icon" />`;
   shareButtonElem.addEventListener("click", copyStats);
   containerElem.appendChild(shareButtonElem);
@@ -129,7 +128,7 @@ function displayProductCard() {
 
   //Select product info element and update the html to display product name
   const productInfo = document.getElementById("product-info");
-  productInfo.innerHTML = `<center>${productName}</center>`;
+  productInfo.innerHTML = `<center>${productName}<br />${productSubname}</center>`;
 }
 
 function updateGameBoard() {
@@ -141,16 +140,18 @@ function updateGameBoard() {
 function updateGuessStat() {
   const guessStats = document.getElementById("game-stats");
   if (gameState.hasWon) {
-    guessStats.innerHTML = `<center>You win! Congratulations!🎉</center>`;
-    guessStats.innerHTML += `<center>The price was $${productPrice}</center>`;
+    guessStats.innerHTML = `<center>Du vandt! Tillykke!🎉</center>`;
+    const formattedPrice = parseFloat(productPrice).toFixed(2).replace('.', ',');
+    guessStats.innerHTML += `<center>Prisen var ${formattedPrice} kr.</center>`;
     return;
   }
 
   if (gameState.guesses.length === 6) {
-    guessStats.innerHTML = `<center>Better luck next time!</center>`;
-    guessStats.innerHTML += `<center>The price was $${productPrice}</center>`;
+    guessStats.innerHTML = `<center>Bedre held næste gang!</center>`;
+    const formattedPrice = parseFloat(productPrice).toFixed(2).replace('.', ',');
+    guessStats.innerHTML += `<center>Prisen var ${formattedPrice} kr.</center>`;
   } else {
-    guessStats.innerHTML = `Guess: ${gameState.guesses.length + 1}/6`;
+    guessStats.innerHTML = `Gæt: ${gameState.guesses.length + 1}/6`;
   }
 }
 
@@ -171,7 +172,11 @@ function buttonEventListener() {
 }
 
 function handleInput() {
-  const strippedString = input.value.replaceAll(",", "");
+  // Get the raw input value (which may contain commas for Danish formatting)
+  const rawInput = input.value;
+  
+  // Convert comma to period for decimal separator and remove thousand separators (dots)
+  const strippedString = rawInput.replace(/\./g, '').replace(',', '.');
   const guess = Number(strippedString).toFixed(2);
 
   if (isNaN(guess) || !strippedString) {
@@ -202,7 +207,13 @@ function handleInput() {
 }
 
 function copyStats() {
-  let output = `Costcodle #${gameNumber}`;
+  const date = new Date();
+  const formatted = new Intl.DateTimeFormat('da-DK', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date);
+  let output = `Remadle, ${formatted},`;
   if (!gameState.hasWon) {
     output += ` X/6\n`;
   } else {
@@ -248,14 +259,14 @@ function copyStats() {
     if (navigator.canShare) {
       navigator
         .share({
-          title: "COSTCODLE",
+          title: "REMADLE",
           text: output,
-          url: "https://costcodle.com",
+          url: "https://remadle.fuglede.dk",
         })
         .catch((error) => console.error("Share failed:", error));
     }
   } else {
-    output += `https://costcodle.com`;
+    output += `https://remadle.fuglede.dk`;
     navigator.clipboard.writeText(output);
     displayToast();
   }
@@ -283,10 +294,10 @@ function addEventListeners() {
   buttonInput.addEventListener("click", buttonEventListener);
 
   input.addEventListener("focus", () => {
-    input.setAttribute("placeholder", "0.00");
+    input.setAttribute("placeholder", "0,00");
   });
   input.addEventListener("blur", () => {
-    input.setAttribute("placeholder", "Enter a guess...");
+    input.setAttribute("placeholder", "Indtast et gæt");
   });
 }
 
@@ -294,7 +305,7 @@ function removeEventListeners() {
   buttonInput.setAttribute("disabled", "");
   buttonInput.classList.remove("active");
   input.setAttribute("disabled", "");
-  input.setAttribute("placeholder", "Game Over!");
+  input.setAttribute("placeholder", "Spillet er slut!");
   input.removeEventListener("keydown", inputEventListener);
   buttonInput.removeEventListener("click", buttonEventListener);
 }
@@ -357,7 +368,9 @@ function displayGuess(guess, index = gameState.guesses.length) {
 
   infoContainer.classList.add("guess-direction-container", "animate__flipInX");
 
-  guessValueContainer.innerHTML = `$${guess.guess}`;
+  // Format the guess value in Danish currency format (12,00 kr.)
+  const formattedGuess = parseFloat(guess.guess).toFixed(2).replace('.', ',');
+  guessValueContainer.innerHTML = `${formattedGuess} kr.`;
 
   infoContainer.classList.add(guess.closeness);
   infoContainer.innerHTML = guess.direction;
@@ -423,7 +436,7 @@ function switchState(event) {
   }
 
   if (overlayElem.style.display === "flex") {
-    title.innerHTML = `COSTCO<span class="costco-blue">DLE</span>`;
+    title.innerHTML = `REMADLE`;
     overlayElem.style.display = "none";
     return;
   }
@@ -437,7 +450,7 @@ function switchState(event) {
   }
 
   function renderInfo() {
-    title.innerHTML = `HOW TO <span class="costco-blue">PLAY</span>`;
+    title.innerHTML = `SÅDAN <span class="costco-blue">GØR</span> DU`;
     if (!title.classList.contains("info-title")) {
       title.classList.add("info-title");
     }
@@ -445,7 +458,7 @@ function switchState(event) {
   }
 
   function renderStats() {
-    title.innerHTML = `GAME <span class="costco-blue">STATS</span>`;
+    title.innerHTML = `<span class="costco-blue">STATISTIK</span>`;
 
     renderStatistics();
     graphDistribution();
@@ -502,14 +515,26 @@ function shakeBox() {
 }
 
 /*
-  Finds current game number based off of Costcodle start date
+  Finds current game number based off of Remadle start date
 */
 
 function getGameNumber() {
-  const currDate = new Date();
-  let timeDifference = currDate.getTime() - costcodleStartDate.getTime();
-  let dayDifference = timeDifference / (1000 * 3600 * 24);
+  const now = new Date();
 
-  return Math.ceil(dayDifference) + 1;
+  // Local midnight today
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  // Local midnight of start date
+  const start = new Date(
+    2025, 9, 23 // Oct 23, 2025 (month is 0-based)
+  );
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const dayDifference = Math.floor((today - start) / msPerDay);
+
+  return (dayDifference % 3822) + 1;
 }
-
